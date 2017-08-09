@@ -1,0 +1,28 @@
+---
+
+default: &default
+  port: 40000
+  cookie_keys: ichat-cookie
+  session_keys: ichat-session
+  #koa-session 把失效日期存入cookie加密字段中所以即使服务器重启还是能计算失效日期
+  cookie_session_expiry: 120 #单位分钟
+  allowOrigin: '*'
+
+  # db 设置
+  mongo_address: mongodb://192.168.16.45/ichat
+  mongo_pool: 20
+
+  # 此处为绝对路径
+  log_path:
+
+
+  upload_dir: /Users/liuss/workspance/work/nodejs/upload/u_file
+  upload_file_prefix: /u_file
+
+
+
+test:
+  <<: *default
+  port: 50000
+
+
