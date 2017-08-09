@@ -10,8 +10,8 @@ const mongoose = require('mongoose');
 const util = require('util');
 
 const config = require('../config');
-const logger = require('log4js').getLogger('api-index');
 const apiError = require('../util/api-error');
+const logger = require('log4js').getLogger('api-index');
 
 const app = new Koa();
 const router = new Router();

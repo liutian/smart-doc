@@ -9,7 +9,7 @@ default: &default
   allowOrigin: '*'
 
   # db 设置
-  mongo_address: mongodb://192.168.16.45/ichat
+  mongo_address: mongodb://192.168.16.45/man
   mongo_pool: 20
 
   # 此处为绝对路径
