@@ -18,9 +18,9 @@ exports.find = findFn;
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
 async function createFn(data) {
-  data = _util.pick(data, 'title des content state createBy manId authorList enableComment enablePraise');
+  data = _util.pick(data, 'title des content state createBy manId authorList enableComment enablePraise index parentId');
 
-  if (!data.manId) apiError.throw('man cannot be empty');
+  if (!data.manId) apiError.throw('manId cannot be empty');
   if (!data.title) apiError.throw('title cannot be empty');
   if (!data.createBy) apiError.throw('createBy cannot be empty');
 
@@ -45,19 +45,31 @@ async function createFn(data) {
 }
 
 async function updateFn(data) {
-  let newData = _util.pick(data, 'title content des state del authorList enableComment enablePraise');
+  let newData = _util.pick(data, 'title content des state del authorList enableComment enablePraise index parentId');
 
   if (!data.id) apiError.throw('id cannot be empty');
   if (data.del != 1) delete data.del;// 只处理删除
+
+  let article = await articleModel.findOne({ _id: data.id, del: 0, createBy: data.createBy }, 'manId');
+  if (!article) apiError.throw('article cannot find');
 
   if (newData.authorList && newData.authorList.length > 0) {
     let names = await getAuthorList(data.authorList);
     newData.authorNames = names;
   }
-  let newarticle = await articleModel.findOneAndUpdate({ _id: data.id, del: 0, createBy: data.createBy }, newData, { new: true, runValidators: true });
-  if (!newarticle) apiError.throw('this article cannot find');
 
-  return newarticle.obj;
+  await articleModel.findByIdAndUpdate(data.id, newData, { runValidators: true });
+
+  if (data.index !== undefined) {
+    await articleModel.update({
+      manId: article.manId,
+      del: 0,
+      parentId: article.parentId,
+      _id: { $ne: data.id },
+      index: { $gte: data.index }
+    }, { $inc: { index: 1 } });
+  }
+
 }
 
 async function findFn(data) {

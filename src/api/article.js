@@ -17,10 +17,13 @@ module.exports = function (router) {
    * @apiParam {[Number]} authorList 作者列表
    * @apiParam {Number} enableComment 手册是否启用评论
    * @apiParam {Number} enablePraise 手册是否用赞
+   * @apiParam {Number} parentId 文章父级ID
+   * @apiParam {Number} index 文章索引位置
    */
+  router.post('/auth/article', createArticle);
 
   /**
-   * @api {post} /auth/article 更新文章
+   * @api {post} /auth/article/:id 更新文章
    * @apiName update article
    * @apiGroup article
    *
@@ -32,8 +35,10 @@ module.exports = function (router) {
    * @apiParam {[Number]} authorList 作者列表
    * @apiParam {Number} enableComment 文章是否启用评论
    * @apiParam {Number} enablePraise 文章是否用赞
+   * @apiParam {Number} parentId 文章父级ID
+   * @apiParam {Number} index 文章索引位置 
    */
-  router.post('/auth/article', saveArticle);
+  router.post('/auth/article/:id', updateArticle);
 
   /**
    * @api {get} /auth/article 查询文章信息
@@ -57,14 +62,18 @@ module.exports = function (router) {
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
 
-async function saveArticle(ctx, next) {
+async function createArticle(ctx, next) {
   ctx.request.body.createBy = ctx.session.user.id;
-  if (ctx.request.body.id) {
-    ctx.body = await articleService.update(ctx.request.body);
-  } else {
-    ctx.body = await articleService.create(ctx.request.body);
-  }
+  ctx.body = await articleService.create(ctx.request.body);
 }
+
+async function updateArticle(ctx, next) {
+  ctx.request.body.createBy = ctx.session.user.id;
+  ctx.request.body.id = ctx.params.id;
+  await articleService.update(ctx.request.body);
+  ctx.body = {};
+}
+
 
 async function findArticle(ctx, next) {
   ctx.body = await articleService.find(ctx.query);

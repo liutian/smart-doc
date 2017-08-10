@@ -19,6 +19,8 @@ const articleSchema = new Schema({
   enableComment: { type: Number, min: 0, max: 1, default: 0 },
   enablePraise: { type: Number, min: 0, max: 1, default: 0 },
   latestUpdate: { type: Date },
+  parentId: { type: Schema.Types.ObjectId },
+  index: { type: Number, default: 0 },
   del: {
     type: Number,
     min: 0,

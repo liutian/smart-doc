@@ -14,9 +14,10 @@ module.exports = function (router) {
    * @apiParam {String} des 站点描述
    * @apiParam {Number} type 站点是否公开
    */
+  router.post('/auth/site', createSite);
 
   /**
-   * @api {post} /auth/site 更新站点信息
+   * @api {post} /auth/site/:id 更新站点信息
    * @apiName update site
    * @apiGroup site
    *
@@ -26,7 +27,7 @@ module.exports = function (router) {
    * @apiParam {String} des 站点描述
    * @apiParam {Number} type 站点是否公开
    */
-  router.post('/auth/site', saveSite);
+  router.post('/auth/site/:id', updateSite);
 
   /**
    * @api {get} /auth/site 查询站点信息
@@ -48,13 +49,15 @@ module.exports = function (router) {
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
 
-async function saveSite(ctx, next) {
+async function createSite(ctx, next) {
   ctx.request.body.createBy = ctx.session.user.id;
-  if (ctx.request.body.id) {
-    ctx.body = await siteService.update(ctx.request.body);
-  } else {
-    ctx.body = await siteService.create(ctx.request.body);
-  }
+  ctx.body = await siteService.create(ctx.request.body);
+}
+
+async function updateSite(ctx, next) {
+  ctx.request.body.createBy = ctx.session.user.id;
+  ctx.request.body.id = ctx.params.id;
+  ctx.body = await siteService.update(ctx.request.body);
 }
 
 async function findSite(ctx, next) {

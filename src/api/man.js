@@ -17,9 +17,10 @@ module.exports = function (router) {
    * @apiParam {Number} enablePraise 手册是否用赞
    * @apiParam {Number} siteId 手册所属站点 
    */
+  router.post('/auth/man', createMan);
 
   /**
-   * @api {post} /auth/man 更新手册
+   * @api {post} /auth/man/:id 更新手册
    * @apiName update man
    * @apiGroup man
    *
@@ -31,7 +32,7 @@ module.exports = function (router) {
    * @apiParam {Number} enableComment 手册是否启用评论
    * @apiParam {Number} enablePraise 手册是否用赞
    */
-  router.post('/auth/man', saveMan);
+  router.post('/auth/man/:id', updateMan);
 
   /**
    * @api {get} /auth/man 查询手册信息
@@ -54,13 +55,15 @@ module.exports = function (router) {
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
 
-async function saveMan(ctx, next) {
+async function createMan(ctx, next) {
   ctx.request.body.createBy = ctx.session.user.id;
-  if (ctx.request.body.id) {
-    ctx.body = await manService.update(ctx.request.body);
-  } else {
-    ctx.body = await manService.create(ctx.request.body);
-  }
+  ctx.body = await manService.create(ctx.request.body);
+}
+
+async function updateMan(ctx, next) {
+  ctx.request.body.createBy = ctx.session.user.id;
+  ctx.request.body.id = ctx.params.id;
+  ctx.body = await manService.update(ctx.request.body);
 }
 
 async function findMan(ctx, next) {
