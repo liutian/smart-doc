@@ -8,7 +8,7 @@ const manSchema = new Schema({
   name: { type: String, trim: true, maxlength: 50, require: true },
   cover: { type: String, trim: true, maxlength: 200 },
   des: { type: String, trim: true, maxlength: 200 },
-  state: { type: Number, min: 0, max: 1, default: 1 },//0上架 1下架
+  state: { type: Number, min: 0, max: 1, default: 0 },//是否上架
   createBy: { type: Schema.Types.ObjectId, require: true },
   viewCount: { type: Number, min: 0, default: 0 },
   praiseCount: { type: Number, min: 0, default: 0 },

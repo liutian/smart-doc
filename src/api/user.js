@@ -1,7 +1,6 @@
 const logger = require('log4js').getLogger('api-user');
-const mongoose = require('mongoose');
 
-const userService = require('../service/user');
+const userService = require('../service/user-service');
 
 module.exports = function (router) {
 
