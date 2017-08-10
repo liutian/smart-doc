@@ -8,11 +8,13 @@ const apiError = require('../util/api-error');
 const _util = require('../util/util');
 
 const userModel = mongoose.model('user');
+const randomLength = 16;
 
 
 exports.register = registerFn;
 exports.login = loginFn;
 exports.findUser = findUserFn;
+exports.updateUser = updateUserFn;
 
 
 /*---------------------------------------- 分割线 ------------------------------------------------*/
@@ -26,12 +28,12 @@ async function registerFn(data) {
   let isExist = await userModel.count({ loginName: data.loginName, del: 0 });
   if (isExist > 0) apiError.throw('this user already exist');
 
-  let key = crypto.randomBytes(16).toString('hex');
+  let key = crypto.randomBytes(randomLength).toString('hex');
   let secrect = crypto.createHmac('sha256', key);
   secrect.update(data.password);
   let password = secrect.digest().toString('hex');
 
-  await userModel.create(Object.assign(data, { password: password, passwordKey: key }));
+  await userModel.create(Object.assign(data, { password: password, passwordKey: key }), { runValidators: true, new: true });
 }
 
 async function loginFn(data) {
@@ -60,4 +62,22 @@ async function findUserFn(data) {
   return userList.map(u => {
     return _util.pick(u.obj, 'id loginName nickname');
   });
+}
+
+async function updateUserFn(data) {
+  let newData = _util.pick(data, 'id nickname password');
+
+  if (!data.id) apiError.throw('id cannot be empty');
+
+  if (newData.password) {
+    let key = crypto.randomBytes(randomLength).toString('hex');
+    let secrect = crypto.createHmac('sha256', key);
+    secrect.update(data.password);
+    let password = secrect.digest().toString('hex');
+    newData.password = password;
+    newData.passwordKey = key;
+  }
+
+  let user = await userModel.findByIdAndUpdate(data.id, newData, { runValidators: true, new: true });
+  return _util.pick(user.obj, 'loginName nickname id');
 }

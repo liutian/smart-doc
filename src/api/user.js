@@ -27,7 +27,7 @@ module.exports = function (router) {
   router.post('/open/login', login);
 
   /**
-   * @api {post} /auth/user 查询用户
+   * @api {get} /auth/user 查询用户
    * @apiName search user
    * @apiGroup user
    *
@@ -35,6 +35,16 @@ module.exports = function (router) {
    * @apiParam {String} nickname 用户昵称
    */
   router.get('/auth/user', findUser);
+
+  /**
+ * @api {post} /auth/user 更新信息
+ * @apiName update user
+ * @apiGroup user
+ *
+ * @apiParam {String} nickname 用户昵称
+ * @apiParam {String} password 用户密码
+ */
+  router.post('/auth/user', updateUser);
 }
 
 
@@ -61,4 +71,11 @@ async function login(ctx, next) {
 
 async function findUser(ctx, next) {
   ctx.body = await userService.findUser(ctx.query);
+}
+
+async function updateUser(ctx, next) {
+  ctx.request.body.id = ctx.session.user.id;
+  let user = await userService.updateUser(ctx.request.body);
+  ctx.session.user = user;
+  ctx.body = user;
 }

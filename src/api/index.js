@@ -13,6 +13,8 @@ const config = require('../config');
 const apiError = require('../util/api-error');
 const logger = require('log4js').getLogger('api-index');
 
+const sessionAgeUnit = 1000 * 60;
+
 const app = new Koa();
 const router = new Router();
 
@@ -31,7 +33,7 @@ app.use(cors);
 // 客户端接口认证
 const sessionMiddleware = session({
   key: (config.session_keys || 'ichat-session-mko09ijn'),
-  maxAge: config.cookie_session_expiry * 1000 * 60
+  maxAge: config.cookie_session_expiry * sessionAgeUnit
 }, app);
 
 router.all('/auth/*', corsFilter, sessionMiddleware, auth, koaBody);
@@ -64,8 +66,15 @@ async function responseTime(ctx, next) {
 async function auth(ctx, next) {
   if (!ctx.session.user) {
     ctx.throw(401);
+  } else if (ctx.session.maxAge / sessionAgeUnit != config.cookie_session_expiry) {
+    ctx.session.maxAge = config.cookie_session_expiry * sessionAgeUnit;
+    delete ctx.session.user;
+    ctx.status = 401;
+    ctx.expose = true;
+    ctx.message = 'cookie maxage error';
+  } else {
+    await next();
   }
-  await next();
 }
 
 async function cors(ctx, next) {
