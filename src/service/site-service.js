@@ -43,6 +43,8 @@ async function findFn(data) {
   data = _util.pick(data, 'name des type createBy');
 
   if (data.name) data.name = new RegExp(data.name, 'i');
+  if (data.des) data.des = new RegExp(data.des, 'i');
+  data.del = 0;
   let siteList = await siteModel.find(data);
 
   return siteList;

@@ -16,9 +16,9 @@ exports.find = findFn;
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
 async function createFn(data) {
-  data = _util.pick(data, 'name cover des state createBy siteId');
+  data = _util.pick(data, 'name cover des state createBy siteId enableComment enablePraise');
 
-  if (!data.siteId) apiError.throw('siteId cannot be empty');
+  if (!data.siteId) apiError.throw('site cannot be empty');
   if (!data.name) apiError.throw('name cannot be empty');
   if (!data.createBy) apiError.throw('createBy cannot be empty');
 
@@ -34,7 +34,7 @@ async function createFn(data) {
 }
 
 async function updateFn(data) {
-  let newData = _util.pick(data, 'name cover des state del');
+  let newData = _util.pick(data, 'name cover des state del enableComment enablePraise');
 
   if (!data.id) apiError.throw('id cannot be empty');
   if (data.del != 1) delete data.del;// 只处理删除
@@ -46,9 +46,11 @@ async function updateFn(data) {
 }
 
 async function findFn(data) {
-  data = _util.pick(data, 'name des state createBy');
+  data = _util.pick(data, 'name des state createBy siteId enableComment enablePraise');
 
   if (data.name) data.name = new RegExp(data.name, 'i');
+  if (data.des) data.des = new RegExp(data.des, 'i');
+  data.del = 0;
   let manList = await manModel.find(data);
 
   return manList;

@@ -42,6 +42,7 @@ module.exports = function (router) {
    * @apiParam {String} des 手册描述
    * @apiParam {Number} state 手册是否上架
    * @apiParam {String} createBy 手册创建者
+   * @apiParam {String} siteId 手册所属的站点ID
    * 
    */
   router.get('/auth/man', findMan);

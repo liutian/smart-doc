@@ -57,7 +57,8 @@ async function findUserFn(data) {
   if (data.loginName) data.loginName = new RegExp(data.loginName, 'i');
   if (data.nickname) data.nickname = new RegExp(data.nickname, 'i');
 
-  let userList = await userModel.find(Object.assign(data, { del: 0 }));
+  data.del = 0;
+  let userList = await userModel.find(data);
 
   return userList.map(u => {
     return _util.pick(u.obj, 'id loginName nickname');

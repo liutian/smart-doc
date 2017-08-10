@@ -12,6 +12,7 @@ const articleSchema = new Schema({
   state: { type: Number, min: 0, max: 1, default: 1 },//0发布 1草稿
   createBy: { type: Schema.Types.ObjectId, require: true },
   authorList: [Schema.Types.ObjectId],
+  authorNames: String,
   viewCount: { type: Number, min: 0, default: 0 },
   praiseCount: { type: Number, min: 0, default: 0 },
   commentCount: { type: Number, min: 0, default: 0 },
