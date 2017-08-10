@@ -8,10 +8,12 @@ const _util = require('../util/util');
 
 const manModel = mongoose.model('man');
 const siteModel = mongoose.model('site');
+const articleModel = mongoose.model('article');
 
 exports.create = createFn;
 exports.update = updateFn;
 exports.find = findFn;
+exports.findWrite = findWriteFn;
 
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
@@ -54,4 +56,17 @@ async function findFn(data) {
   let manList = await manModel.find(data);
 
   return manList;
+}
+
+async function findWriteFn(data) {
+
+  let articleList = await articleModel.find({ authorList: data.userId, del: 0 }, 'title manId state');
+
+  let manIdSet = new Set();
+  articleList.forEach(a => manIdSet.add(a.manId));
+
+  let manList = await manModel.find({ _id: { $in: Array.from(manIdSet) }, del: 0 }, 'name cover state viewCount praiseCount commentCount');
+  return manList.map(man => {
+    man.articleList = articleList.filter(a => a.manId == man.id);
+  });
 }

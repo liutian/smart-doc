@@ -14,6 +14,8 @@ const userModel = mongoose.model('user');
 exports.create = createFn;
 exports.update = updateFn;
 exports.find = findFn;
+exports.detail = detailFn;
+exports.detailAbout = detailAboutFn;
 
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
@@ -92,4 +94,28 @@ async function getAuthorList(authorList) {
     nicknameList.push(author.nickname);
   }
   return nicknameList.join('、');
+}
+
+async function detailFn(id) {
+  let article = await articleModel.findById(id);
+  if (!article) apiError.throw('article cannot find');
+  return article.obj;
+}
+
+async function detailAboutFn(id) {
+  let article = await articleModel.findById(id);
+  if (!article) apiError.throw('article cannot find');
+
+  let articleList = await articleModel.find({ manId: article.manId, del: 0 });
+
+  let manList = await manModel.find({ siteId: article.siteId, del: 0 });
+
+  let site = await siteModel.findById(article.siteId);
+
+  return {
+    site: site.obj,
+    manList: manList,
+    articleList: articleList,
+    article: article
+  }
 }
