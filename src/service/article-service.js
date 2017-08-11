@@ -98,20 +98,29 @@ async function getAuthorList(authorList) {
   return nicknameList.join('、');
 }
 
-async function detailFn(id) {
-  let article = await articleModel.findById(id);
+async function detailFn(id, currUserId) {
+  let article = await articleModel.findByIdAndUpdate(id, { viewCount: { $inc: 1 } });
   if (!article) apiError.throw('article cannot find');
+  if (currUserId && article.createBy != currUserId && !article.authorList.includes(currUserId)) {
+    apiError.throw('Permission Denied');
+  } else if (!currUserId && article.state === 1) {
+    apiError.throw('Permission Denied');
+  }
+
   return article.obj;
 }
 
-async function detailAboutFn(id) {
-  let article = await articleModel.findById(id);
+async function detailAboutFn(id, currUserId) {
+  let article = await articleModel.findByIdAndUpdate(id, { viewCount: { $inc: 1 } });
   if (!article) apiError.throw('article cannot find');
+  if (currUserId && article.createBy != currUserId && !article.authorList.includes(currUserId)) {
+    apiError.throw('Permission Denied');
+  } else if (!currUserId && article.state === 1) {
+    apiError.throw('Permission Denied');
+  }
 
   let articleList = await articleModel.find({ manId: article.manId, del: 0 });
-
   let manList = await manModel.find({ siteId: article.siteId, del: 0 });
-
   let site = await siteModel.findById(article.siteId);
 
   return {
@@ -126,8 +135,13 @@ async function praiseFn(data) {
   if (!data.createBy) apiError.throw('createBy cannot be empty');
   if (!data.articleId) apiError.throw('articleId cannot be empty');
 
-  let article = await articleModel.findById(data.articleId, 'manId siteId');
+  let article = await articleModel.findByIdAndUpdate(data.articleId, {
+    praiseCount: {
+      $inc: data.praise ? 1 : -1
+    }
+  }, 'manId siteId');
   if (!article) apiError.throw('article cannot find');
+  if (!article.enablePraise) apiError.throw(' enablePraise false');
 
   let query = {
     createBy: data.createBy,
