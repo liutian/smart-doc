@@ -70,6 +70,17 @@ module.exports = function (router) {
    *
    */
   router.get('/open/article-about/:id', detailAboutArticle);
+
+
+  /**
+   * @api {post} /auth/:id/praise
+   * @apiName praise article
+   * @apiGroup article
+   * 
+   * @apiParam {Number} praise 是否赞
+   *
+   */
+  router.post('/auth/article/:id/praise', articlePraise);
 }
 
 
@@ -100,4 +111,13 @@ async function detailArticle(ctx, next) {
 
 async function detailAboutArticle(ctx, next) {
   ctx.body = await articleService.detailAbout(ctx.params.id);
+}
+
+async function articlePraise(ctx, next) {
+  let data = {
+    createBy: ctx.session.user.id,
+    articleId: ctx.params.id
+  }
+  await articleService.praise(Object.assign(ctx.request.body, data));
+  ctx.body = {};
 }

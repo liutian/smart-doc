@@ -10,12 +10,14 @@ const articleModel = mongoose.model('article');
 const siteModel = mongoose.model('site');
 const manModel = mongoose.model('man');
 const userModel = mongoose.model('user');
+const praiseModel = mongoose.model('praise');
 
 exports.create = createFn;
 exports.update = updateFn;
 exports.find = findFn;
 exports.detail = detailFn;
 exports.detailAbout = detailAboutFn;
+exports.praise = praiseFn;
 
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
@@ -118,4 +120,20 @@ async function detailAboutFn(id) {
     articleList: articleList,
     article: article
   }
+}
+
+async function praiseFn(data) {
+  if (!data.createBy) apiError.throw('createBy cannot be empty');
+  if (!data.articleId) apiError.throw('articleId cannot be empty');
+
+  let article = await articleModel.findById(data.articleId, 'manId siteId');
+  if (!article) apiError.throw('article cannot find');
+
+  let query = {
+    createBy: data.createBy,
+    articleId: article.id,
+    manId: article.manId,
+    siteId: article.siteId
+  };
+  await praiseModel.update(query, { del: data.praise ? 0 : 1 }, { upsert: true });
 }
