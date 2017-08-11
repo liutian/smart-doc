@@ -28,6 +28,7 @@ async function createFn(data) {
 
   let article = await articleModel.findById(data.articleId, 'manId siteId');
   if (!article) apiError.throw('article cannot find');
+  if (!article.enableComment) apiError.throw('enableComment false');
   data.manId = article.manId;
   data.siteId = article.siteId;
 
