@@ -9,7 +9,6 @@ const _util = require('../util/util');
 const commentModel = mongoose.model('comment');
 const siteModel = mongoose.model('site');
 const manModel = mongoose.model('man');
-const commentModel = mongoose.model('comment');
 const userModel = mongoose.model('user');
 const praiseModel = mongoose.model('praise');
 
