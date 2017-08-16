@@ -5,6 +5,7 @@ const config = require('../config');
 const util = require('../util/util');
 const apiError = require('../util/api-error');
 const _util = require('../util/util');
+const esClient = require('../util/es-factory')();
 
 const articleModel = mongoose.model('article');
 const siteModel = mongoose.model('site');
@@ -18,6 +19,7 @@ exports.find = findFn;
 exports.detail = detailFn;
 exports.detailAbout = detailAboutFn;
 exports.praise = praiseFn;
+exports.search = searchFn;
 
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
@@ -44,6 +46,21 @@ async function createFn(data) {
 
   data.siteId = man.siteId;
   let article = await articleModel.create(data);
+
+  await esClient.create({
+    index: 'man',
+    type: 'article',
+    id: article.id,
+    body: {
+      title: article.title,
+      des: article.des,
+      content: article.content,
+      manId: article.manId,
+      siteId: article.siteId,
+      createBy: article.createBy,
+      state: article.state
+    }
+  });
 
   return article.obj;
 }
@@ -72,6 +89,22 @@ async function updateFn(data) {
       _id: { $ne: data.id },
       index: { $gte: data.index }
     }, { $inc: { index: 1 } });
+  }
+
+  if (newData.title || newData.content || newData.des) {
+    let doc = {};
+    if (newData.title) doc.title = newData.title;
+    if (newData.content) doc.title = newData.content;
+    if (newData.des) doc.des = newData.des;
+
+    await esClient.update({
+      index: 'man',
+      type: 'article',
+      id: data.id,
+      body: {
+        doc: doc
+      }
+    });
   }
 
 }
@@ -150,4 +183,67 @@ async function praiseFn(data) {
     siteId: article.siteId
   };
   await praiseModel.update(query, { del: data.praise ? 0 : 1 }, { upsert: true });
+}
+
+async function searchFn(data) {
+  data = _util.pick(data, 'searchKey state createBy manId siteId');
+  if (!data.searchKey) apiError.throw('searchKey cannot be empty');
+
+  let searchData = {
+    index: 'man',
+    type: 'article',
+    body: {
+      query: {
+        bool: {
+          must: {
+            multi_match: {
+              query: data.searchKey,
+              fields: ['title^3', 'des^2', 'content'],
+              minimum_should_match: '20%',
+              type: 'most_fields',
+            }
+          },
+          filter: []
+        }
+      },
+      highlight: {
+        pre_tags: ['<em>'],
+        post_tags: ['</em>'],
+        fields: { title: {}, des: {}, content: {} }
+      }
+    }
+  };
+
+  if (data.state) {
+    searchData.body.query.bool.filter.push({ term: { state: data.state } });
+  }
+  if (data.createBy) {
+    searchData.body.query.bool.filter.push({ term: { createBy: data.createBy } });
+  }
+  if (data.manId) {
+    searchData.body.query.bool.filter.push({ term: { manId: data.manId } });
+  }
+  if (data.siteId) {
+    searchData.body.query.bool.filter.push({ term: { siteId: data.siteId } });
+  }
+
+  let result = await esClient.search(searchData);
+
+  if (result && result.hits && result.hits.total > 0) {
+    return result.hits.hits.map(v => {
+      return {
+        id: v._id,
+        title: v.highlight.title || v._source.title,
+        des: v.highlight.des || v._source.des,
+        content: v.highlight.content || v._source.content,
+        createBy: v._source.createBy,
+        state: v._source.state,
+        manId: v._source.manId,
+        siteId: v._source.siteId,
+        _score: v._score
+      }
+    })
+  }
+
+  return [];
 }

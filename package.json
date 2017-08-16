@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "bluebird": "3.5.0",
+    "elasticsearch": "13.3.1",
     "js-yaml": "3.9.1",
     "koa": "2.3.0",
     "koa-body": "2.3.0",

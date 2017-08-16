@@ -19,6 +19,11 @@ default: &default
   upload_dir: /Users/liuss/workspance/work/nodejs/upload/u_file
   upload_file_prefix: /u_file
 
+  es_hosts:
+    - host: '121.43.173.172'
+      port: 80
+      
+
 
 
 test:

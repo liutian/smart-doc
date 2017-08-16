@@ -42,7 +42,7 @@ module.exports = function (router) {
 
   /**
    * @api {get} /auth/article 查询文章信息
-   * @apiName search article
+   * @apiName query article
    * @apiGroup article
    *
    * @apiParam {String} title 文章标题
@@ -54,6 +54,20 @@ module.exports = function (router) {
    * 
    */
   router.get('/auth/article', findArticle);
+
+  /**
+   * @api {get} /auth/article-search 全文检索
+   * @apiName search article
+   * @apiGroup article
+   *
+   * @apiParam {String} searchKey 文章标题
+   * @apiParam {Number} state 状态 0发布 1草稿
+   * @apiParam {String} createBy 文章创建者
+   * @apiParam {String} manId 文章所属的手册ID
+   * @apiParam {String} siteId 文章所属的站点ID
+   * 
+   */
+  router.get('/auth/article-search', searchArticle);
 
   /**
    * @api {get} /open/article/:id 查询文章详情
@@ -103,6 +117,10 @@ async function updateArticle(ctx, next) {
 
 async function findArticle(ctx, next) {
   ctx.body = await articleService.find(ctx.query);
+}
+
+async function searchArticle(ctx, next) {
+  ctx.body = await articleService.search(ctx.query);
 }
 
 async function detailArticle(ctx, next) {
