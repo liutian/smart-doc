@@ -15,6 +15,7 @@ exports.register = registerFn;
 exports.login = loginFn;
 exports.findUser = findUserFn;
 exports.updateUser = updateUserFn;
+exports.logout = logoutFn;
 
 
 /*---------------------------------------- 分割线 ------------------------------------------------*/
@@ -47,6 +48,7 @@ async function loginFn(data) {
   let password = secrect.digest().toString('hex');
 
   if (password != user.password) apiError.throw('this user do not exist ');
+  await userModel.findByIdAndUpdate(user.id, { latestLogin: new Date() });
 
   return _util.pick(user.obj, 'id loginName nickname ');
 }
@@ -81,4 +83,8 @@ async function updateUserFn(data) {
 
   let user = await userModel.findByIdAndUpdate(data.id, newData, { runValidators: true, new: true });
   return _util.pick(user.obj, 'loginName nickname id');
+}
+
+async function logoutFn(id) {
+  await userModel.findByIdAndUpdate(id, { latestLogout: new Date() });
 }

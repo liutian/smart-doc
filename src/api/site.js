@@ -37,7 +37,6 @@ module.exports = function (router) {
    * @apiParam {String} name 站点名称
    * @apiParam {String} des 站点描述
    * @apiParam {Number} type 站点是否公开
-   * @apiParam {String} createBy 站点创建者
    * 
    */
   router.get('/auth/site', findSite);
@@ -61,5 +60,7 @@ async function updateSite(ctx, next) {
 }
 
 async function findSite(ctx, next) {
-  ctx.body = await siteService.find(ctx.query);
+  ctx.body = await siteService.find(Object.assign(ctx.query, {
+    createBy: ctx.session.user.id
+  }));
 }

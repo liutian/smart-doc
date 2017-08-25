@@ -20,7 +20,7 @@ exports.findWrite = findWriteFn;
 async function createFn(data) {
   data = _util.pick(data, 'name cover des state createBy siteId enableComment enablePraise');
 
-  if (!data.siteId) apiError.throw('site cannot be empty');
+  if (!data.siteId) apiError.throw('siteId cannot be empty');
   if (!data.name) apiError.throw('name cannot be empty');
   if (!data.createBy) apiError.throw('createBy cannot be empty');
 
@@ -55,7 +55,9 @@ async function findFn(data) {
   data.del = 0;
   let manList = await manModel.find(data);
 
-  return manList;
+  return manList.map(v => {
+    return v.obj;
+  });
 }
 
 async function findWriteFn(data) {
@@ -67,6 +69,8 @@ async function findWriteFn(data) {
 
   let manList = await manModel.find({ _id: { $in: Array.from(manIdSet) }, del: 0 }, 'name cover state viewCount praiseCount commentCount');
   return manList.map(man => {
-    man.articleList = articleList.filter(a => a.manId == man.id);
+    let manObj = man.obj;
+    manObj.articleList = articleList.filter(a => a.manId == man.id);
+    return manObj;
   });
 }

@@ -48,7 +48,6 @@ module.exports = function (router) {
    * @apiParam {String} title 文章标题
    * @apiParam {String} des 文章描述
    * @apiParam {Number} state 状态 0发布 1草稿
-   * @apiParam {String} createBy 文章创建者
    * @apiParam {String} manId 文章所属的手册ID
    * @apiParam {String} siteId 文章所属的站点ID
    * 
@@ -116,7 +115,9 @@ async function updateArticle(ctx, next) {
 
 
 async function findArticle(ctx, next) {
-  ctx.body = await articleService.find(ctx.query);
+  ctx.body = await articleService.find(Object.assign(ctx.query, {
+    createBy: ctx.session.user.id
+  }));
 }
 
 async function searchArticle(ctx, next) {

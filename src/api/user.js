@@ -44,6 +44,14 @@ module.exports = function (router) {
  * @apiParam {String} password 用户密码
  */
   router.post('/auth/user', updateUser);
+
+  /**
+   * @api {post} /auth/logout 用户登录
+   * @apiName user logout
+   * @apiGroup user
+   *
+   */
+  router.post('/auth/logout', logout);
 }
 
 
@@ -77,4 +85,11 @@ async function updateUser(ctx, next) {
   let user = await userService.updateUser(ctx.request.body);
   ctx.session.user = user;
   ctx.body = user;
+}
+
+async function logout(ctx, next) {
+  let currUser = ctx.session.user;
+  delete ctx.session.user;
+  await userService.logout(currUser.id);
+  ctx.body = {};
 }

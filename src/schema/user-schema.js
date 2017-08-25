@@ -9,6 +9,7 @@ const userSchema = new Schema({
   passwordKey: { type: String, maxlength: 100, require: true },
   nickname: { type: String, trim: true, maxlength: 20, require: true },
   latestLogin: { type: Date },
+  latestLogout: { type: Date },
   des: { type: String, trim: true, maxlength: 200 },
   lock: {
     type: Number,

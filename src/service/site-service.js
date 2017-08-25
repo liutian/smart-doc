@@ -47,5 +47,7 @@ async function findFn(data) {
   data.del = 0;
   let siteList = await siteModel.find(data);
 
-  return siteList;
+  return siteList.map(v => {
+    return v.obj;
+  });
 }

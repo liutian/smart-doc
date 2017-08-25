@@ -42,7 +42,6 @@ module.exports = function (router) {
    * @apiParam {String} name 手册名称
    * @apiParam {String} des 手册描述
    * @apiParam {Number} state 手册是否上架
-   * @apiParam {String} createBy 手册创建者
    * @apiParam {String} siteId 手册所属的站点ID
    * 
    */
@@ -78,7 +77,9 @@ async function updateMan(ctx, next) {
 }
 
 async function findMan(ctx, next) {
-  ctx.body = await manService.find(ctx.query);
+  ctx.body = await manService.find(Object.assign(ctx.query, {
+    createBy: ctx.session.user.id
+  }));
 }
 
 async function findManWrite(ctx, next) {
