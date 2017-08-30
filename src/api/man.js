@@ -48,6 +48,16 @@ module.exports = function (router) {
   router.get('/auth/man', findMan);
 
   /**
+   * @api {get} /auth/man/:id 查询单个手册信息
+   * @apiName detail man
+   * @apiGroup man
+   *
+   * @apiParam {String} id 手册Id
+   * 
+   */
+  router.get('/auth/man/:id', detailMan);
+
+  /**
    * @api {get} /auth/man-write 查询可以编辑的手册及文章
    * @apiName search edit man
    * @apiGroup man
@@ -85,4 +95,8 @@ async function findMan(ctx, next) {
 async function findManWrite(ctx, next) {
   ctx.query.userId = ctx.session.user.id;
   ctx.body = await manService.findWrite(ctx.query);
+}
+
+async function detailMan(ctx, next) {
+  ctx.body = await manService.detail(ctx.params.id, ctx.session.user.id);
 }

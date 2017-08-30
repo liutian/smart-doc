@@ -77,6 +77,14 @@ module.exports = function (router) {
   router.get('/open/article/:id', detailArticle);
 
   /**
+   * @api {get} /auth/article/:id 查询文章详情
+   * @apiName detail article
+   * @apiGroup article
+   *
+   */
+  router.get('/auth/article/:id', authDetailArticle);
+
+  /**
    * @api {get} /open/article-about/:id 查询文章详情以及所属站点站点手册信息
    * @apiName about article
    * @apiGroup article
@@ -126,6 +134,10 @@ async function searchArticle(ctx, next) {
 
 async function detailArticle(ctx, next) {
   ctx.body = await articleService.detail(ctx.params.id);
+}
+
+async function authDetailArticle(ctx, next) {
+  ctx.body = await articleService.detail(ctx.params.id, ctx.session.user.id);
 }
 
 async function detailAboutArticle(ctx, next) {

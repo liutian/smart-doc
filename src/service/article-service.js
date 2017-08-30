@@ -47,20 +47,20 @@ async function createFn(data) {
   data.siteId = man.siteId;
   let article = await articleModel.create(data);
 
-  await esClient.create({
-    index: 'man',
-    type: 'article',
-    id: article.id,
-    body: {
-      title: article.title,
-      des: article.des,
-      content: article.content,
-      manId: article.manId,
-      siteId: article.siteId,
-      createBy: article.createBy,
-      state: article.state
-    }
-  });
+  // await esClient.create({
+  //   index: 'man',
+  //   type: 'article',
+  //   id: article.id,
+  //   body: {
+  //     title: article.title,
+  //     des: article.des,
+  //     content: article.content,
+  //     manId: article.manId,
+  //     siteId: article.siteId,
+  //     createBy: article.createBy,
+  //     state: article.state
+  //   }
+  // });
 
   return article.obj;
 }
@@ -97,14 +97,14 @@ async function updateFn(data) {
     if (newData.content) doc.title = newData.content;
     if (newData.des) doc.des = newData.des;
 
-    await esClient.update({
-      index: 'man',
-      type: 'article',
-      id: data.id,
-      body: {
-        doc: doc
-      }
-    });
+    // await esClient.update({
+    //   index: 'man',
+    //   type: 'article',
+    //   id: data.id,
+    //   body: {
+    //     doc: doc
+    //   }
+    // });
   }
 
 }
@@ -115,9 +115,11 @@ async function findFn(data) {
   if (data.title) data.title = new RegExp(data.title, 'i');
   if (data.des) data.des = new RegExp(data.des, 'i');
   data.del = 0;
-  let articleList = await articleModel.find(data);
+  let articleList = await articleModel.find(data).sort({ index: -1, _id: -1 });
 
-  return articleList;
+  return articleList.map(v => {
+    return v.obj;
+  });
 }
 
 async function getAuthorList(authorList) {
@@ -132,7 +134,7 @@ async function getAuthorList(authorList) {
 }
 
 async function detailFn(id, currUserId) {
-  let article = await articleModel.findByIdAndUpdate(id, { viewCount: { $inc: 1 } });
+  let article = await articleModel.findByIdAndUpdate(id, { $inc: { viewCount: 1 } });
   if (!article) apiError.throw('article cannot find');
   if (currUserId && article.createBy != currUserId && !article.authorList.includes(currUserId)) {
     apiError.throw('Permission Denied');

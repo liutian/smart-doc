@@ -14,6 +14,7 @@ exports.create = createFn;
 exports.update = updateFn;
 exports.find = findFn;
 exports.findWrite = findWriteFn;
+exports.detail = detailFn;
 
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
@@ -73,4 +74,16 @@ async function findWriteFn(data) {
     manObj.articleList = articleList.filter(a => a.manId == man.id);
     return manObj;
   });
+}
+
+async function detailFn(id, currUserId) {
+  let man = await manModel.findById(id);
+  if (!man) apiError.throw('man cannot find');
+  if (currUserId && man.createBy != currUserId) {
+    apiError.throw('Permission Denied');
+  } else if (!currUserId && man.state !== 1) {
+    apiError.throw('Permission Denied');
+  }
+
+  return man.obj;
 }
