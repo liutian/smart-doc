@@ -41,6 +41,13 @@ module.exports = function (router) {
    */
   router.get('/auth/site', findSite);
 
+  /**
+   * @api {get} /open/siteAndMan/:siteId/:manId 查询站点以及站点所属的手册列表
+   * @apiName siteAndMan
+   * @apiGroup site
+   *
+   */
+  router.get('/open/siteAndMan/:siteId/:manId', siteAndMan);
 }
 
 
@@ -63,4 +70,8 @@ async function findSite(ctx, next) {
   ctx.body = await siteService.find(Object.assign(ctx.query, {
     createBy: ctx.session.user.id
   }));
+}
+
+async function siteAndMan(ctx, next) {
+  ctx.body = await siteService.siteAndMan(ctx.params.siteId, ctx.params.manId);
 }

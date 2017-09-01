@@ -9,15 +9,15 @@ default: &default
   allowOrigin: '*'
 
   # db 设置
-  mongo_address: mongodb://192.168.16.45/man
+  mongo_address: mongodb://127.0.0.1/man
   mongo_pool: 20
 
   # 此处为绝对路径
   log_path:
 
 
-  upload_dir: /Users/liuss/workspance/work/nodejs/upload/u_file
-  upload_file_prefix: /u_file
+  upload_dir: /Users/liuss/workspance/work/nodejs/upload/u2_file
+  upload_file_prefix: /u2_file
 
   es_hosts:
     - host: '121.43.173.172'

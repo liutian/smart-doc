@@ -1,6 +1,13 @@
-const logger = require('log4js').getLogger('api-article');
+const crypto = require('crypto');
+const fs = require('fs');
+const util = require('util');
+const path = require('path');
+const rename = util.promisify(fs.rename);
 
+const logger = require('log4js').getLogger('api-article');
 const articleService = require('../service/article-service');
+const _util = require('../util/util');
+const config = require('../config');
 
 module.exports = function (router) {
 
@@ -84,14 +91,6 @@ module.exports = function (router) {
    */
   router.get('/auth/article/:id', authDetailArticle);
 
-  /**
-   * @api {get} /open/article-about/:id 查询文章详情以及所属站点站点手册信息
-   * @apiName about article
-   * @apiGroup article
-   *
-   */
-  router.get('/open/article-about/:id', detailAboutArticle);
-
 
   /**
    * @api {post} /auth/:id/praise
@@ -102,6 +101,20 @@ module.exports = function (router) {
    *
    */
   router.post('/auth/article/:id/praise', articlePraise);
+
+  /**
+   * @api {post} /open/upload 上传文件
+   * @apiName upload file
+   * @apiGroup upload
+   * @apiDescription 服务器返回上传后，以对象方式返回文件信息，对象键为上传时的name,值参见下列描述
+   *
+   * @apiSuccess {Number} size 文件大小
+   * @apiSuccess {String} path 文件访问路径，相对服务器的路径
+   * @apiSuccess {String} name 文件名称
+   * @apiSuccess {String} type 文件类型
+   *
+   */
+  router.post('/open/upload', upload);
 }
 
 
@@ -140,10 +153,6 @@ async function authDetailArticle(ctx, next) {
   ctx.body = await articleService.detail(ctx.params.id, ctx.session.user.id);
 }
 
-async function detailAboutArticle(ctx, next) {
-  ctx.body = await articleService.detailAbout(ctx.params.id);
-}
-
 async function articlePraise(ctx, next) {
   let data = {
     createBy: ctx.session.user.id,
@@ -152,3 +161,37 @@ async function articlePraise(ctx, next) {
   await articleService.praise(Object.assign(ctx.request.body, data));
   ctx.body = {};
 }
+
+
+async function upload(ctx, next) {
+  let filesObj = ctx.request.body.files;
+  if (!filesObj || Object.keys(filesObj).length <= 0) {
+    apiError.throw('At least one file ');
+  }
+
+  let date = new Date();
+  let dateStr = date.getFullYear() + '-' + date.getMonth() + '-' + date.getDate();
+  let hash = crypto.createHash('md5');
+  hash.update(dateStr);
+  let dateHash = hash.digest('hex');
+
+  let fileInfoList = [];
+  let filesObjKeys = Object.keys(filesObj);
+  for (let i = 0; i < filesObjKeys.length; i++) {
+    let fileInfo = filesObj[filesObjKeys[i]];
+    let random = await _util.random(5);
+    let pathArr = [config.upload_dir, dateHash, random];
+    let filePath = path.join.apply(null, pathArr);
+
+    await _util.mkdir(path.dirname(filePath));
+    await rename(fileInfo.path, filePath);
+
+    fileInfoList.push(Object.assign(fileInfo, {
+      path: config.upload_file_prefix + filePath.replace(config.upload_dir, '')
+    }));
+  }
+
+  ctx.body = JSON.stringify(fileInfoList);
+  ctx.type = 'text/html';
+}
+

@@ -17,7 +17,6 @@ exports.create = createFn;
 exports.update = updateFn;
 exports.find = findFn;
 exports.detail = detailFn;
-exports.detailAbout = detailAboutFn;
 exports.praise = praiseFn;
 exports.search = searchFn;
 
@@ -143,27 +142,6 @@ async function detailFn(id, currUserId) {
   }
 
   return article.obj;
-}
-
-async function detailAboutFn(id, currUserId) {
-  let article = await articleModel.findByIdAndUpdate(id, { viewCount: { $inc: 1 } });
-  if (!article) apiError.throw('article cannot find');
-  if (currUserId && article.createBy != currUserId && !article.authorList.includes(currUserId)) {
-    apiError.throw('Permission Denied');
-  } else if (!currUserId && article.state === 1) {
-    apiError.throw('Permission Denied');
-  }
-
-  let articleList = await articleModel.find({ manId: article.manId, del: 0 });
-  let manList = await manModel.find({ siteId: article.siteId, del: 0 });
-  let site = await siteModel.findById(article.siteId);
-
-  return {
-    site: site.obj,
-    manList: manList,
-    articleList: articleList,
-    article: article
-  }
 }
 
 async function praiseFn(data) {

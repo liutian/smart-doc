@@ -7,10 +7,13 @@ const apiError = require('../util/api-error');
 const _util = require('../util/util');
 
 const siteModel = mongoose.model('site');
+const manModel = mongoose.model('man');
+const articleModel = mongoose.model('article');
 
 exports.create = createFn;
 exports.update = updateFn;
 exports.find = findFn;
+exports.siteAndMan = siteAndManFn;
 
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
@@ -50,4 +53,16 @@ async function findFn(data) {
   return siteList.map(v => {
     return v.obj;
   });
+}
+
+async function siteAndManFn(siteId, manId) {
+  let site = await siteModel.findById(siteId);
+  let manList = await manModel.find({ siteId: siteId, del: 0 });
+  let articleList = await articleModel.find({ manId: manId, del: 0, state: 0 });
+
+  return {
+    site: site.obj,
+    manList: manList.map(v => v.obj),
+    articleList: articleList.map(a => a.obj)
+  }
 }
