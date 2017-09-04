@@ -21,7 +21,6 @@ module.exports = function (router) {
    * @apiParam {String} content 文章内容
    * @apiParam {Number} state 状态 0发布 1草稿
    * @apiParam {Number} manId 文章所属手册
-   * @apiParam {[Number]} authorList 作者列表
    * @apiParam {Number} enableComment 手册是否启用评论
    * @apiParam {Number} enablePraise 手册是否用赞
    * @apiParam {Number} parentId 文章父级ID
@@ -39,7 +38,6 @@ module.exports = function (router) {
    * @apiParam {String} des 文章内容
    * @apiParam {String} content 文章内容
    * @apiParam {Number} state 状态 0发布 1草稿
-   * @apiParam {[Number]} authorList 作者列表
    * @apiParam {Number} enableComment 文章是否启用评论
    * @apiParam {Number} enablePraise 文章是否用赞
    * @apiParam {Number} parentId 文章父级ID

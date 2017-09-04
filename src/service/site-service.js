@@ -14,6 +14,7 @@ exports.create = createFn;
 exports.update = updateFn;
 exports.find = findFn;
 exports.siteAndMan = siteAndManFn;
+exports.findAboutMe = findAboutMeFn;
 
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
@@ -55,14 +56,46 @@ async function findFn(data) {
   });
 }
 
-async function siteAndManFn(siteId, manId) {
-  let site = await siteModel.findById(siteId);
-  let manList = await manModel.find({ siteId: siteId, del: 0 });
-  let articleList = await articleModel.find({ manId: manId, del: 0, state: 0 });
+async function findAboutMeFn(userId) {
+  let siteList = await siteModel.find({ createBy: userId });
 
-  return {
-    site: site.obj,
-    manList: manList.map(v => v.obj),
-    articleList: articleList.map(a => a.obj)
+  let siteIds = await manModel.find({ admins: userId }, 'siteId');
+  let otherList = await siteModel.find({ _id: { $in: siteIds.map(v => v.siteId) } });
+
+  return siteList.concat(otherList).map(v => {
+    return v.obj;
+  });
+}
+
+async function siteAndManFn(siteId, manId, currUserId) {
+  if (currUserId) {
+    let site = await siteModel.findOne({ _id: siteId, del: 0 });
+    if (!site) apiError.throw('this site cannot find');
+    let man = await manModel.findOne({ _id: manId, $or: [{ admins: currUserId }, { createBy: currUserId }] });
+    if (!man) apiError.throw('this man cannot find');
+
+    let manList = await manModel.find({ siteId: siteId });
+    let articleList = await articleModel.find({ manId: manId });
+
+    return {
+      site: site.obj,
+      manList: manList.map(v => v.obj),
+      articleList: articleList.map(a => a.obj)
+    }
+  } else {
+
+    let site = await siteModel.findOne({ _id: siteId, type: 1, del: 0 });
+    if (!site) apiError.throw('this site cannot find');
+    let man = await manModel.findOne({ _id: manId, del: 0, state: 1 });
+    if (!man) apiError.throw('this man cannot find');
+
+    let manList = await manModel.find({ siteId: siteId, del: 0, state: 1 });
+    let articleList = await articleModel.find({ manId: manId, del: 0, state: 0 });
+
+    return {
+      site: site.obj,
+      manList: manList.map(v => v.obj),
+      articleList: articleList.map(a => a.obj)
+    }
   }
 }

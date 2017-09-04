@@ -13,7 +13,6 @@ const articleModel = mongoose.model('article');
 exports.create = createFn;
 exports.update = updateFn;
 exports.find = findFn;
-exports.findWrite = findWriteFn;
 exports.detail = detailFn;
 
 /*---------------------------------------- 分割线 ------------------------------------------------*/
@@ -21,23 +20,27 @@ exports.detail = detailFn;
 async function createFn(data) {
   data = _util.pick(data, 'name cover des state createBy siteId enableComment enablePraise');
 
+  // 验证参数
   if (!data.siteId) apiError.throw('siteId cannot be empty');
   if (!data.name) apiError.throw('name cannot be empty');
   if (!data.createBy) apiError.throw('createBy cannot be empty');
 
+  // 验证站点
   let siteCount = await siteModel.count({ _id: data.siteId, del: 0, createBy: data.createBy });
   if (siteCount <= 0) apiError.throw('this site cannot find');
 
+  // 验证手册
   let manCount = await manModel.count({ name: data.name, del: 0, createBy: data.createBy });
   if (manCount > 0) apiError.throw('this man already exist');
 
+  data.admins = [];
   let man = await manModel.create(data);
 
   return man.obj;
 }
 
 async function updateFn(data) {
-  let newData = _util.pick(data, 'name cover des state del enableComment enablePraise');
+  let newData = _util.pick(data, 'name cover des state del enableComment enablePraise admins');
 
   if (!data.id) apiError.throw('id cannot be empty');
   if (data.del != 1) delete data.del;// 只处理删除
@@ -61,25 +64,10 @@ async function findFn(data) {
   });
 }
 
-async function findWriteFn(data) {
-
-  let articleList = await articleModel.find({ authorList: data.userId, del: 0 }, 'title manId state');
-
-  let manIdSet = new Set();
-  articleList.forEach(a => manIdSet.add(a.manId));
-
-  let manList = await manModel.find({ _id: { $in: Array.from(manIdSet) }, del: 0 }, 'name cover state viewCount praiseCount commentCount');
-  return manList.map(man => {
-    let manObj = man.obj;
-    manObj.articleList = articleList.filter(a => a.manId == man.id);
-    return manObj;
-  });
-}
-
 async function detailFn(id, currUserId) {
   let man = await manModel.findById(id);
   if (!man) apiError.throw('man cannot find');
-  if (currUserId && man.createBy != currUserId) {
+  if (currUserId && man.createBy != currUserId && man.admins.indexOf(currUserId) === -1) {
     apiError.throw('Permission Denied');
   } else if (!currUserId && man.state !== 1) {
     apiError.throw('Permission Denied');

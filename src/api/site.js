@@ -48,6 +48,22 @@ module.exports = function (router) {
    *
    */
   router.get('/open/siteAndMan/:siteId/:manId', siteAndMan);
+
+  /**
+  * @api {get} /auth/siteAndMan/:siteId/:manId 查询站点以及站点所属的手册列表
+  * @apiName siteAndMan[auth]
+  * @apiGroup site
+  *
+  */
+  router.get('/auth/siteAndMan/:siteId/:manId', authSiteAndMan);
+
+  /**
+   * @api {get} /auth/site-about-me 查询和自己相关的站点，包括自己创建的和自己管理的
+   * @apiName findAboutMe
+   * @apiGroup site
+   *
+   */
+  router.get('/auth/site-about-me', findAboutMe);
 }
 
 
@@ -74,4 +90,12 @@ async function findSite(ctx, next) {
 
 async function siteAndMan(ctx, next) {
   ctx.body = await siteService.siteAndMan(ctx.params.siteId, ctx.params.manId);
+}
+
+async function authSiteAndMan(ctx, next) {
+  ctx.body = await siteService.siteAndMan(ctx.params.siteId, ctx.params.manId, ctx.session.user.id);
+}
+
+async function findAboutMe(ctx, next) {
+  ctx.body = await siteService.findAboutMe(ctx.session.user.id);
 }

@@ -9,10 +9,9 @@ const articleSchema = new Schema({
   title: { type: String, trim: true, maxlength: 50, require: true },
   des: { type: String, trim: true, maxlength: 200 },
   content: { type: String, maxlength: 50000 },
-  state: { type: Number, min: 0, max: 1, default: 1 },//0发布 1草稿
+  state: { type: Number, min: 0, max: 1, default: 1 },//是否发布
   createBy: { type: Schema.Types.ObjectId, require: true },
-  authorList: [Schema.Types.ObjectId],
-  authorNames: String,
+  updateBy: { type: Schema.Types.ObjectId, require: true },
   viewCount: { type: Number, min: 0, default: 0 },
   praiseCount: { type: Number, min: 0, default: 0 },
   commentCount: { type: Number, min: 0, default: 0 },

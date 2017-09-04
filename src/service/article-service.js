@@ -23,29 +23,39 @@ exports.search = searchFn;
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
 async function createFn(data) {
-  data = _util.pick(data, 'title des content state createBy manId authorList enableComment enablePraise index parentId');
+  // 提取参数
+  data = _util.pick(data, 'title des content state createBy manId enableComment enablePraise index parentId');
 
+  // 参数校验
   if (!data.manId) apiError.throw('manId cannot be empty');
   if (!data.title) apiError.throw('title cannot be empty');
   if (!data.createBy) apiError.throw('createBy cannot be empty');
 
-  let man = await manModel.findOne({ _id: data.manId, del: 0, createBy: data.createBy }, 'siteId');
+  // 手册校验
+  let man = await manModel.findOne({
+    _id: data.manId,
+    del: 0,
+    $or: [
+      { createBy: data.createBy },
+      { admins: data.createBy }
+    ]//必须是手册创建者或者管理者
+  }, 'siteId');
   if (!man) apiError.throw('this man cannot find');
-
-  let siteCount = await siteModel.count({ _id: man.siteId, del: 0, createBy: data.createBy });
+  // 站点校验
+  let siteCount = await siteModel.count({ _id: man.siteId, del: 0 });
   if (siteCount <= 0) apiError.throw('this site cannot find');
-
-  let articleCount = await articleModel.count({ title: data.title, manId: data.manId, del: 0, createBy: data.createBy });
+  // 文章校验
+  let articleCount = await articleModel.count({ title: data.title, manId: data.manId, del: 0 });
   if (articleCount > 0) apiError.throw('this article already exist');
 
-  if (data.authorList && data.authorList.length > 0) {
-    let names = await getAuthorList(data.authorList);
-    data.authorNames = names;
-  }
 
+  // 创建文章
+  let articleIndex = await articleModel.count({ manId: data.manId, del: 0 });
+  data.index = ++articleIndex;
   data.siteId = man.siteId;
   let article = await articleModel.create(data);
 
+  // 录入搜索引擎
   // await esClient.create({
   //   index: 'man',
   //   type: 'article',
@@ -65,19 +75,24 @@ async function createFn(data) {
 }
 
 async function updateFn(data) {
-  let newData = _util.pick(data, 'title content des state del authorList enableComment enablePraise index parentId');
+  // 提取参数
+  let newData = _util.pick(data, 'title content des state del enableComment enablePraise index parentId');
 
+  // 参数校验
   if (!data.id) apiError.throw('id cannot be empty');
   if (data.del != 1) delete data.del;// 只处理删除
-
-  let article = await articleModel.findOne({ _id: data.id, del: 0, createBy: data.createBy }, 'manId');
+  // 文章校验
+  let article = await articleModel.findOne({
+    _id: data.id,
+    del: 0,
+    $or: [
+      { createBy: data.createBy },
+      { admins: data.createBy }
+    ]
+  }, 'manId');
   if (!article) apiError.throw('article cannot find');
 
-  if (newData.authorList && newData.authorList.length > 0) {
-    let names = await getAuthorList(data.authorList);
-    newData.authorNames = names;
-  }
-
+  // 更新文章
   await articleModel.findByIdAndUpdate(data.id, newData, { runValidators: true });
 
   if (data.index !== undefined) {
@@ -90,6 +105,7 @@ async function updateFn(data) {
     }, { $inc: { index: 1 } });
   }
 
+  // 录入搜索引擎
   if (newData.title || newData.content || newData.des) {
     let doc = {};
     if (newData.title) doc.title = newData.title;
@@ -109,7 +125,7 @@ async function updateFn(data) {
 }
 
 async function findFn(data) {
-  data = _util.pick(data, 'title des state createBy manId siteId');
+  data = _util.pick(data, 'title des state createBy manId siteId admins');
 
   if (data.title) data.title = new RegExp(data.title, 'i');
   if (data.des) data.des = new RegExp(data.des, 'i');
@@ -121,23 +137,16 @@ async function findFn(data) {
   });
 }
 
-async function getAuthorList(authorList) {
-  let nicknameList = [];
-  for (var i = 0; i < authorList.length; i++) {
-    let authorId = authorList[i];
-    let author = await userModel.findOne({ _id: authorId, del: 0 }, 'nickname');
-    if (!author) apiError.throw('this user not exist');
-    nicknameList.push(author.nickname);
-  }
-  return nicknameList.join('、');
-}
 
 async function detailFn(id, currUserId) {
-  let article = await articleModel.findByIdAndUpdate(id, { $inc: { viewCount: 1 } });
+  let article = await articleModel.findByIdAndUpdate(id, {
+    $inc: { viewCount: currUserId ? 0 : 1 }
+  });
   if (!article) apiError.throw('article cannot find');
-  if (currUserId && article.createBy != currUserId && !article.authorList.includes(currUserId)) {
+  let man = await manModel.findById(article.manId, 'createBy admins');
+  if (currUserId && man.createBy != currUserId && !man.admins.indexOf(currUserId)) {// 后台查看必须有权限
     apiError.throw('Permission Denied');
-  } else if (!currUserId && article.state === 1) {
+  } else if (!currUserId && article.state === 1) {// 未上架不得查看
     apiError.throw('Permission Denied');
   }
 
