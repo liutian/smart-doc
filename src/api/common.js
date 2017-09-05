@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
@@ -45,7 +46,7 @@ async function upload(ctx, next) {
   for (let i = 0; i < filesObjKeys.length; i++) {
     let fileInfo = filesObj[filesObjKeys[i]];
     let random = await _util.random(5);
-    let pathArr = [config.upload_dir, dateHash, random];
+    let pathArr = [config.upload_dir, dateHash, random + path.extname(fileInfo.name)];
     let filePath = path.join.apply(null, pathArr);
 
     await _util.mkdir(path.dirname(filePath));
@@ -56,7 +57,8 @@ async function upload(ctx, next) {
     }));
   }
 
-  ctx.body = JSON.stringify(fileInfoList);
-  ctx.type = 'text/html';
+  ctx.body = { files: fileInfoList, success: true };
+  // ctx.body = JSON.stringify(fileInfoList);
+  // ctx.type = 'text/html';
 }
 
