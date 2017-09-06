@@ -30,6 +30,15 @@ module.exports = function (router) {
   router.post('/auth/site/:id', updateSite);
 
   /**
+   * @api {get} /auth/site/:id 查看站点详情
+   * @apiName detail site
+   * @apiGroup site
+   *
+   * @apiParam {Number} id 站点ID
+   */
+  router.get('/auth/site/:id', detailSite);
+
+  /**
    * @api {get} /auth/site 查询站点信息
    * @apiName search site
    * @apiGroup site
@@ -98,4 +107,8 @@ async function authSiteAndMan(ctx, next) {
 
 async function findAboutMe(ctx, next) {
   ctx.body = await siteService.findAboutMe(ctx.session.user.id);
+}
+
+async function detailSite(ctx, next) {
+  ctx.body = await siteService.detail(ctx.params.id);
 }

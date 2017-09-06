@@ -140,13 +140,16 @@ async function findFn(data) {
 
 async function detailFn(id, currUserId) {
   let article = await articleModel.findByIdAndUpdate(id, {
-    $inc: { viewCount: currUserId ? 0 : 1 }
+    $inc: { viewCount: currUserId ? 0 : 1 },
+    del: 0
   });
   if (!article) apiError.throw('article cannot find');
-  let man = await manModel.findById(article.manId, 'createBy admins');
+  let man = await manModel.findOne({ _id: article.manId, del: 0 }, 'createBy admins');
+  if (!man) apiError.throw('man cannot find');
+
   if (currUserId && man.createBy != currUserId && !man.admins.indexOf(currUserId)) {// 后台查看必须有权限
     apiError.throw('Permission Denied');
-  } else if (!currUserId && article.state === 1) {// 未上架不得查看
+  } else if (!currUserId && article.state === 0) {// 未上架不得查看
     apiError.throw('Permission Denied');
   }
 

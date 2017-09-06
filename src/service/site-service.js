@@ -15,6 +15,7 @@ exports.update = updateFn;
 exports.find = findFn;
 exports.siteAndMan = siteAndManFn;
 exports.findAboutMe = findAboutMeFn;
+exports.detail = detailFn;
 
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
@@ -57,10 +58,15 @@ async function findFn(data) {
 }
 
 async function findAboutMeFn(userId) {
-  let siteList = await siteModel.find({ createBy: userId });
+  let siteList = await siteModel.find({ createBy: userId, del: 0 });
 
-  let siteIds = await manModel.find({ admins: userId }, 'siteId');
-  let otherList = await siteModel.find({ _id: { $in: siteIds.map(v => v.siteId) } });
+  let siteIds = await manModel.find({ admins: userId, del: 0 }, 'siteId');
+  let otherList = await siteModel.find({
+    _id: {
+      $in: siteIds.map(v => v.siteId)
+    },
+    del: 0
+  });
 
   return siteList.concat(otherList).map(v => {
     return v.obj;
@@ -71,11 +77,11 @@ async function siteAndManFn(siteId, manId, currUserId) {
   if (currUserId) {
     let site = await siteModel.findOne({ _id: siteId, del: 0 });
     if (!site) apiError.throw('this site cannot find');
-    let man = await manModel.findOne({ _id: manId, $or: [{ admins: currUserId }, { createBy: currUserId }] });
+    let man = await manModel.findOne({ _id: manId, $or: [{ admins: currUserId }, { createBy: currUserId }], del: 0 });
     if (!man) apiError.throw('this man cannot find');
 
-    let manList = await manModel.find({ siteId: siteId });
-    let articleList = await articleModel.find({ manId: manId });
+    let manList = await manModel.find({ siteId: siteId, del: 0 });
+    let articleList = await articleModel.find({ manId: manId, del: 0 }).sort({ index: -1, _id: -1 });
 
     return {
       site: site.obj,
@@ -90,7 +96,7 @@ async function siteAndManFn(siteId, manId, currUserId) {
     if (!man) apiError.throw('this man cannot find');
 
     let manList = await manModel.find({ siteId: siteId, del: 0, state: 1 });
-    let articleList = await articleModel.find({ manId: manId, del: 0, state: 0 });
+    let articleList = await articleModel.find({ manId: manId, del: 0, state: 1 }).sort({ index: -1, _id: -1 });
 
     return {
       site: site.obj,
@@ -98,4 +104,16 @@ async function siteAndManFn(siteId, manId, currUserId) {
       articleList: articleList.map(a => a.obj)
     }
   }
+}
+
+async function detailFn(id, currUserId) {
+  let site = await siteModel.findById(id);
+  if (!site) apiError.throw('site cannot find');
+  if (currUserId && site.createBy != currUserId) {
+    apiError.throw('Permission Denied');
+  } else if (!currUserId && site.type !== 1) {
+    apiError.throw('Permission Denied');
+  }
+
+  return site.obj;
 }
