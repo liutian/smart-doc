@@ -22,7 +22,7 @@ const router = new Router();
 app.on('error', onerror);
 
 //cookie签名的key
-app.keys = [(config.cookie_keys || 'ichat-cookie-zaq12wsx')];
+app.keys = [(config.cookie_keys || 'man-cookie-zaq12wsx')];
 
 //记录响应时间
 app.use(responseTime);
@@ -32,7 +32,7 @@ app.use(cors);
 
 // 客户端接口认证
 const sessionMiddleware = session({
-  key: (config.session_keys || 'ichat-session-mko09ijn'),
+  key: (config.session_keys || 'man-session-mko09ijn'),
   maxAge: config.cookie_session_expiry * sessionAgeUnit
 }, app);
 
