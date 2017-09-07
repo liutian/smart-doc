@@ -57,8 +57,13 @@ async function upload(ctx, next) {
     }));
   }
 
-  ctx.body = { files: fileInfoList, success: true };
-  // ctx.body = JSON.stringify(fileInfoList);
-  // ctx.type = 'text/html';
+  // ctx.body = { files: fileInfoList, success: true };
+  // 符合 ueditor 规范
+  ctx.body = JSON.stringify({
+    state: 'SUCCESS',
+    fileList: fileInfoList,
+    url: fileInfoList.map(f => { return f.path }).join('|')
+  });
+  ctx.type = 'text/html';
 }
 
