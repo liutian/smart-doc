@@ -81,7 +81,7 @@ async function siteAndManFn(siteId, manId, currUserId) {
     if (!man) apiError.throw('this man cannot find');
 
     let manList = await manModel.find({ siteId: siteId, del: 0 });
-    let articleList = await articleModel.find({ manId: manId, del: 0 }).sort({ index: -1, _id: -1 });
+    let articleList = await articleModel.find({ manId: manId, del: 0 }).sort({ index: 1, _id: -1 });
 
     return {
       site: site.obj,
@@ -96,7 +96,7 @@ async function siteAndManFn(siteId, manId, currUserId) {
     if (!man) apiError.throw('this man cannot find');
 
     let manList = await manModel.find({ siteId: siteId, del: 0, state: 1 });
-    let articleList = await articleModel.find({ manId: manId, del: 0, state: 1 }).sort({ index: -1, _id: -1 });
+    let articleList = await articleModel.find({ manId: manId, del: 0, state: 1 }).sort({ index: 1, _id: -1 });
 
     return {
       site: site.obj,

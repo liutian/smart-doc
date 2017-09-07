@@ -130,7 +130,7 @@ async function findFn(data) {
   if (data.title) data.title = new RegExp(data.title, 'i');
   if (data.des) data.des = new RegExp(data.des, 'i');
   data.del = 0;
-  let articleList = await articleModel.find(data).sort({ index: -1, _id: -1 });
+  let articleList = await articleModel.find(data).sort({ index: 1, _id: -1 });
 
   return articleList.map(v => {
     return v.obj;
