@@ -18,7 +18,7 @@ exports.detail = detailFn;
 /*---------------------------------------- 分割线 ------------------------------------------------*/
 
 async function createFn(data) {
-  data = _util.pick(data, 'name cover des state createBy siteId enableComment enablePraise');
+  data = _util.pick(data, 'name cover des state createBy siteId enableComment enablePraise admins');
 
   // 验证参数
   if (!data.siteId) apiError.throw('siteId cannot be empty');
@@ -33,7 +33,7 @@ async function createFn(data) {
   let manCount = await manModel.count({ name: data.name, del: 0, createBy: data.createBy });
   if (manCount > 0) apiError.throw('this man already exist');
 
-  data.admins = [];
+  data.admins = data.admins ? data.admins : [];
   let man = await manModel.create(data);
 
   return man.obj;
@@ -65,7 +65,7 @@ async function findFn(data) {
 }
 
 async function detailFn(id, currUserId) {
-  let man = await manModel.findById(id);
+  let man = await manModel.findById(id).populate('admins', 'loginName nickname');
   if (!man) apiError.throw('man cannot find');
   if (currUserId && man.createBy != currUserId && man.admins.indexOf(currUserId) === -1) {
     apiError.throw('Permission Denied');
@@ -73,5 +73,11 @@ async function detailFn(id, currUserId) {
     apiError.throw('Permission Denied');
   }
 
-  return man.obj;
+  let result = man.obj;
+  result.admins = result.admins.map(admin => {
+    admin.id = admin._id;
+    return admin;
+  })
+
+  return result;
 }

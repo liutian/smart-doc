@@ -21,7 +21,7 @@ default: &default
 
   es_hosts:
     - host: '127.0.0.1'
-      port:30003
+      port: 30003
       
 
 test:
