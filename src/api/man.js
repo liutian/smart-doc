@@ -70,15 +70,12 @@ async function createMan(ctx, next) {
 }
 
 async function updateMan(ctx, next) {
-  ctx.request.body.createBy = ctx.session.user.id;
   ctx.request.body.id = ctx.params.id;
-  ctx.body = await manService.update(ctx.request.body);
+  ctx.body = await manService.update(ctx.request.body, ctx.session.user.id);
 }
 
 async function findMan(ctx, next) {
-  ctx.body = await manService.find(Object.assign(ctx.query, {
-    createBy: ctx.session.user.id
-  }));
+  ctx.body = await manService.find(ctx.query, ctx.session.user.id);
 }
 
 async function detailMan(ctx, next) {

@@ -113,17 +113,14 @@ async function createArticle(ctx, next) {
 }
 
 async function updateArticle(ctx, next) {
-  ctx.request.body.createBy = ctx.session.user.id;
   ctx.request.body.id = ctx.params.id;
-  await articleService.update(ctx.request.body);
+  await articleService.update(ctx.request.body, ctx.session.user.id);
   ctx.body = {};
 }
 
 
 async function findArticle(ctx, next) {
-  ctx.body = await articleService.find(Object.assign(ctx.query, {
-    createBy: ctx.session.user.id
-  }));
+  ctx.body = await articleService.find(ctx.query, ctx.session.user.id);
 }
 
 async function searchArticle(ctx, next) {

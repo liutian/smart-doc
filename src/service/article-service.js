@@ -74,23 +74,32 @@ async function createFn(data) {
   return article.obj;
 }
 
-async function updateFn(data) {
+async function updateFn(data, currUserId) {
   // 提取参数
   let newData = _util.pick(data, 'title content des state del enableComment enablePraise index parentId');
 
   // 参数校验
   if (!data.id) apiError.throw('id cannot be empty');
   if (data.del != 1) delete data.del;// 只处理删除
+
   // 文章校验
   let article = await articleModel.findOne({
     _id: data.id,
-    del: 0,
-    $or: [
-      { createBy: data.createBy },
-      { admins: data.createBy }
-    ]
+    del: 0
   }, 'manId');
   if (!article) apiError.throw('article cannot find');
+
+  if (currUserId) {
+    let manExist = await manModel.count({
+      _id: article.manId,
+      $or: [
+        { createBy: currUserId },
+        { admins: currUserId }
+      ]
+    });
+    if (!manExist) apiError.throw('Permission Denied');
+  }
+
 
   // 更新文章
   await articleModel.findByIdAndUpdate(data.id, newData, { runValidators: true });
@@ -124,8 +133,19 @@ async function updateFn(data) {
 
 }
 
-async function findFn(data) {
+async function findFn(data, currUserId) {
   data = _util.pick(data, 'title des state createBy manId siteId admins');
+
+  if (data.manId && currUserId) {
+    let manExist = await manModel.count({
+      _id: data.manId,
+      $or: [
+        { createBy: currUserId },
+        { admins: currUserId }
+      ]
+    });
+    if (!manExist) apiError.throw('Permission Denied');
+  }
 
   if (data.title) data.title = new RegExp(data.title, 'i');
   if (data.des) data.des = new RegExp(data.des, 'i');
@@ -147,7 +167,9 @@ async function detailFn(id, currUserId) {
   let man = await manModel.findOne({ _id: article.manId, del: 0 }, 'createBy admins');
   if (!man) apiError.throw('man cannot find');
 
-  if (currUserId && man.createBy != currUserId && !man.admins.indexOf(currUserId)) {// 后台查看必须有权限
+  if (currUserId && man.createBy != currUserId && !man.admins.find(a => {
+    return a.toString() === currUserId;
+  })) {// 后台查看必须有权限
     apiError.throw('Permission Denied');
   } else if (!currUserId && article.state === 0) {// 未上架不得查看
     apiError.throw('Permission Denied');

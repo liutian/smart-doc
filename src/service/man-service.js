@@ -39,24 +39,39 @@ async function createFn(data) {
   return man.obj;
 }
 
-async function updateFn(data) {
+async function updateFn(data, currUserId) {
   let newData = _util.pick(data, 'name cover des state del enableComment enablePraise admins');
 
   if (!data.id) apiError.throw('id cannot be empty');
   if (data.del != 1) delete data.del;// 只处理删除
 
-  let newMan = await manModel.findOneAndUpdate({ _id: data.id, del: 0, createBy: data.createBy }, newData, { new: true, runValidators: true });
+  let queryParams = {
+    _id: data.id,
+    del: 0
+  }
+
+  if (currUserId) {
+    if (newData.del === 1) {
+      apiError.throw('Permission Denied');
+    }
+    queryParams.$or = [{ createBy: currUserId }, { admins: currUserId }];
+  }
+
+  let newMan = await manModel.findOneAndUpdate(queryParams, newData, { new: true, runValidators: true });
   if (!newMan) apiError.throw('this man cannot find');
 
   return newMan.obj;
 }
 
-async function findFn(data) {
+async function findFn(data, currUserId) {
   data = _util.pick(data, 'name des state createBy siteId enableComment enablePraise');
 
   if (data.name) data.name = new RegExp(data.name, 'i');
   if (data.des) data.des = new RegExp(data.des, 'i');
   data.del = 0;
+  if (currUserId) {
+    data.$or = [{ createBy: currUserId }, { admins: currUserId }];
+  }
   let manList = await manModel.find(data);
 
   return manList.map(v => {
@@ -67,7 +82,9 @@ async function findFn(data) {
 async function detailFn(id, currUserId) {
   let man = await manModel.findById(id).populate('admins', 'loginName nickname');
   if (!man) apiError.throw('man cannot find');
-  if (currUserId && man.createBy != currUserId && man.admins.indexOf(currUserId) === -1) {
+  if (currUserId && man.createBy != currUserId && man.admins.findIndex(a => {
+    return a.obj.id === currUserId;
+  }) === -1) {
     apiError.throw('Permission Denied');
   } else if (!currUserId && man.state !== 1) {
     apiError.throw('Permission Denied');

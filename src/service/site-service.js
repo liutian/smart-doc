@@ -80,7 +80,7 @@ async function siteAndManFn(siteId, manId, currUserId) {
     let man = await manModel.findOne({ _id: manId, $or: [{ admins: currUserId }, { createBy: currUserId }], del: 0 });
     if (!man) apiError.throw('this man cannot find');
 
-    let manList = await manModel.find({ siteId: siteId, del: 0 });
+    let manList = await manModel.find({ siteId: siteId, del: 0, $or: [{ admins: currUserId }, { createBy: currUserId }] });
     let articleList = await articleModel.find({ manId: manId, del: 0 }).sort({ index: 1, _id: -1 });
 
     return {
