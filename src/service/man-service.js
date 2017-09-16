@@ -64,19 +64,28 @@ async function updateFn(data, currUserId) {
 }
 
 async function findFn(data, currUserId) {
-  data = _util.pick(data, 'name des state createBy siteId enableComment enablePraise');
+  let newData = _util.pick(data, 'name des state createBy siteId enableComment enablePraise');
 
-  if (data.name) data.name = new RegExp(data.name, 'i');
-  if (data.des) data.des = new RegExp(data.des, 'i');
-  data.del = 0;
+  let page = +data.page || 1;
+  let pageSize = +data.pageSize || 20;
+  if (newData.name) newData.name = new RegExp(newData.name, 'i');
+  if (newData.des) newData.des = new RegExp(newData.des, 'i');
+  newData.del = 0;
   if (currUserId) {
-    data.$or = [{ createBy: currUserId }, { admins: currUserId }];
+    newData.$or = [{ createBy: currUserId }, { admins: currUserId }];
   }
-  let manList = await manModel.find(data);
 
-  return manList.map(v => {
-    return v.obj;
-  });
+  let total = await manModel.find(newData).count();
+  let manList = await manModel.find(newData).skip((page - 1) * pageSize).limit(pageSize);
+
+  return {
+    data: manList.map(v => {
+      return v.obj;
+    }),
+    total,
+    page,
+    pageSize
+  }
 }
 
 async function detailFn(id, currUserId) {
