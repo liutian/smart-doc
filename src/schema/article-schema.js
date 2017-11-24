@@ -8,7 +8,7 @@ const articleSchema = new Schema({
   siteId: { type: Schema.Types.ObjectId, require: true },
   title: { type: String, trim: true, maxlength: 50, require: true },
   des: { type: String, trim: true, maxlength: 200 },
-  content: { type: String, maxlength: 50000 },
+  content: { type: String, maxlength: 5000000 },
   state: { type: Number, min: 0, max: 1, default: 1 },//是否发布
   createBy: { type: Schema.Types.ObjectId, require: true },
   updateBy: { type: Schema.Types.ObjectId, require: true },
