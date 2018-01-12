@@ -3,3 +3,4 @@ log
 .vscode
 src/config/*-config.yaml
 doc
+package-lock.json
