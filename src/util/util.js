@@ -29,7 +29,7 @@ exports.isObject = function (value) { return objProToString.call(value) == '[obj
 
 /*------------------------------------分割线 -----------------------------*/
 
-function pickFn(data, extraKeys, ) {
+function pickFn(data, extraKeys) {
   let newData = {};
   if (util.isString(extraKeys)) {
     Object.keys(data).forEach(function (key) {
