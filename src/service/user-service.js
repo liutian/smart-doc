@@ -34,7 +34,7 @@ async function registerFn(data) {
   secrect.update(data.password);
   let password = secrect.digest().toString('hex');
 
-  await userModel.create(Object.assign(data, { password: password, passwordKey: key }), { runValidators: true, new: true });
+  await userModel.create(Object.assign(data, { password: password, passwordKey: key }));
 }
 
 async function loginFn(data) {
