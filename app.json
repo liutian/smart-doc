@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "name": "man-1",
+      "name": "doc-1",
       "script": "./index.js",
       "args": "-p=40000",
       "node_args": "",
