@@ -16,7 +16,7 @@
 ### 快速体验
 - `docker run -id -p 44444:80 --name doc-demo liuss/smart-doc:<version> /mnt/data/init.sh` 需要将 `version` 改成对应的版本号
 - 访问管理页面: `https://127.0.0.1:44444` 登录名 demo | demo2 | demo3 | demo4 密码 123456
-- [在线体验](https://39.104.57.212:444444)
+- [在线体验](http://39.104.57.212:44444)
 
 
 ### 环境搭建
