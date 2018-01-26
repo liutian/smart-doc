@@ -2,21 +2,21 @@
 
 default: &default
   port: 40000
-  cookie_keys: ichat-cookie
-  session_keys: ichat-session
+  cookie_keys: doc-cookie
+  session_keys: doc-session
   #koa-session 把失效日期存入cookie加密字段中所以即使服务器重启还是能计算失效日期
   cookie_session_expiry: 120 #单位分钟
   allowOrigin: '*'
 
   # db 设置
-  mongo_address: mongodb://127.0.0.1/man
+  mongo_address: mongodb://127.0.0.1/doc
   mongo_pool: 20
 
   # 此处为绝对路径
   log_path:
 
 
-  upload_dir: /home/visionet/upload-data
+  upload_dir: /mnt/data/upload-files
   upload_file_prefix: /file
 
   es_hosts:
